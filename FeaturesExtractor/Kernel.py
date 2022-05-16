@@ -9,6 +9,7 @@ class Kernel:
         Xvalues     : Vecteur avec les valeurs des coordonnées [[xA,yA], [xB,yB], ...]
         l           : longeur caractéristique du RBF
         '''
+        self.Xvalues = Xvalues
         self.weights = weights
         self.l = l
         self.N, = np.shape(weights)
@@ -19,7 +20,7 @@ class Kernel:
     
     def varVector(self)->np.ndarray:
         '''Renvoie un vecteur 1D : variance pondéré de chaque pixel '''
-        klZero = np.square(self.posVector)
+        klZero = np.square(self.Xvalues)
         #somme de x^2 et y^2 
         klZero = np.sum(klZero,axis=1)
         klZero = np.exp(-klZero/(2*(self.l)**2))

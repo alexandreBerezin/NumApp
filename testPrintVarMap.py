@@ -1,5 +1,6 @@
 '''
-Main
+Test Affichage VarMap
+OK 16/05/2022
 '''
 
 from cv2 import CONTOURS_MATCH_I2
@@ -7,7 +8,6 @@ import numpy as np
 from FeaturesExtractor import Kernel as k
 from ImageProcessing import processing as pr
 from misc import *
-
 import matplotlib.pyplot as plt
 
 
