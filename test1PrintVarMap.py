@@ -11,7 +11,7 @@ from misc import *
 import matplotlib.pyplot as plt
 
 
-contours = pr.preprocess("data/imageBase.png",200)
+contours = pr.preprocess("data/imageBase.png",0)
 shape = np.shape(contours)
 
 Xvec = XVecFromArray(contours)
@@ -21,7 +21,7 @@ weightVec = contours.ravel()
 #Création Ker
 ker = k.Kernel(weightVec,Xvec,3.0)
 
-varVect = ker.varVector()
+varVect = ker.getVarVector()
 varMap = np.reshape(varVect,shape)
 plt.imshow(varMap)
 plt.colorbar()
