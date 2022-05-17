@@ -11,7 +11,7 @@ from misc import *
 import matplotlib.pyplot as plt
 
 
-contours = pr.preprocess("data/imageBase.png",0)
+contours = pr.preprocess("data/imageBase.png",0,3)
 shape = np.shape(contours)
 
 Xvec = XVecFromArray(contours)

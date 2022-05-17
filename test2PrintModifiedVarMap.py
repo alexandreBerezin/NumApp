@@ -1,5 +1,5 @@
 '''
-Main
+affiche
 '''
 
 from cv2 import CONTOURS_MATCH_I2
@@ -26,22 +26,27 @@ varVect = ker.getVarVector()
 
 
 ##Creation ext
-#ext = f.Extractor(varVect,ker)
+ext = f.Extractor(varVect,ker)
 
-#featureList = ext.getFeature(5)
+idxF = ext.getIndexFirstFeature()
 
-#print(featureList)
+ext.addFeature(idxF)
 
-idx= [1380, 1432, 1277, 1023, 1480]
-X =[]
-Y = []
-for id in idx:
-    x,y = Xvec[id]
-    X.append(x)
-    Y.append(y)
-    
-plt.imshow(contours)
-plt.scatter(Y,X,color='r')
+
+
+newVect = ext.getVarVector()
+
+varmap = np.reshape(varVect,shape)
+
+newVarMap = np.reshape(newVect,shape)
+
+plt.subplot(1,2,1)
+plt.imshow(varmap)
+x,y = Xvec[idxF]
+plt.scatter(y,x,color='r')
+
+plt.subplot(1,2,2)
+plt.imshow(newVarMap)
+
 plt.show()
-
 

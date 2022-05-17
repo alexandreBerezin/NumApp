@@ -16,6 +16,12 @@ class Extractor:
         idx = np.argmax(self.varVector)
         return idx #car 1D Array
     
+    def getIndexNextFeature(self,varVect:np.ndarray)->int:
+        '''Renvoie l'index de la prochaine feature'''
+        idx = np.argmax(varVect)
+        return idx
+        
+        
     def addFeature(self,idx):
         print("ADD feature")
         self.featuresList.append(idx)
@@ -55,6 +61,22 @@ class Extractor:
             vec[idx] = self.kernel.cov(x,y)
         
         return vec
+    
+    def getFeature(self,nbFeatures:int)->list:
+        '''renvoie la liste des nb features de l'image'''
+        
+        FF = self.getIndexFirstFeature()
+        if nbFeatures ==1 :
+            return FF
+        self.addFeature(FF)
+        
+        for i in range(1,nbFeatures):
+            newVarVec = self.getVarVector()
+            newFeature = self.getIndexNextFeature(newVarVec)
+            self.addFeature(newFeature)
+            
+        return self.featuresList
+            
     
     
         
