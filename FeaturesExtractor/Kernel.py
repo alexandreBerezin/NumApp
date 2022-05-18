@@ -4,7 +4,7 @@ import numpy as np
 class Kernel:
     '''classe representant la fonction de covariance'''
     
-    def __init__(self,weights:np.ndarray,Xvalues:np.ndarray,l:float)->None:
+    def __init__(self,weights:np.ndarray,Xvalues:np.ndarray,l:float,treshold=None)->None:
         '''Constructeur du Kernel
         weights     : Vecteur 1D
         Xvalues     : Vecteur avec les valeurs des coordonnées [[xA,yA], [xB,yB], ...]
@@ -14,6 +14,7 @@ class Kernel:
         self.weights = weights
         self.l = l
         self.N, = np.shape(weights)
+        self.treshold = treshold
     
     def __repr__(self):
         return "Objet Kernel : l = " + str(self.l) + ", N = " + str(self.N) 
@@ -28,16 +29,41 @@ class Kernel:
         
         return np.convolve(klZero,self.weights)[:self.N]
     
+    def covWithX(self,xsi):
+        '''Retourne un vecteur de cavariance entre tous les xi et xsi'''
+        cov = np.zeros(self.N)
+        for idx in range(self.N):
+            cov[idx] = self.cov(idx,xsi)
+        return cov
+
     
-    def cov(self,idxX:np.ndarray,idxY:np.ndarray)->float:
+    
+    def cov(self,idxX:np.ndarray,idxY:np.ndarray,Usetreshold = True)->float:
         '''Renvoie la covariance pondérée entre x et y'''
+        
         sum = 0
         x = self.Xvalues[idxX]
         y = self.Xvalues[idxY]
-        for idx in range(self.N):
-            z = self.Xvalues[idx]
-            sum = sum + self.RBF(x,z,self.l/2)*self.weights[idx]*self.RBF(z,y,self.l/2)
-        return sum
+        
+        if (Usetreshold):
+
+
+            xA,yA = x
+            xB,yB = y
+            d2 = (xB-xA)**2 + (yB-yA)**2
+            
+            if(d2<self.treshold**2):
+                for idx in range(self.N):
+                    z = self.Xvalues[idx]
+                    sum = sum + self.RBF(x,z,self.l/2)*self.weights[idx]*self.RBF(z,y,self.l/2)
+                return sum
+            #Si la distance est trop grande on retourne 0 pour l'optimisation
+            return 0
+        else : 
+            for idx in range(self.N):
+                    z = self.Xvalues[idx]
+                    sum = sum + self.RBF(x,z,self.l/2)*self.weights[idx]*self.RBF(z,y,self.l/2)
+            return sum
 
     
     def RBF(self,A:np.ndarray,B:np.ndarray,l:float)->float:

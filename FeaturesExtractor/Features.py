@@ -1,5 +1,7 @@
 import numpy as np
 from FeaturesExtractor import Kernel
+
+from misc import *
     
 
     
@@ -9,6 +11,8 @@ class Extractor:
         self.varVector = varVector
         self.N, = np.shape(varVector)
         self.kernel = kernel
+        self.psi = np.array([])
+        
         
     def getIndexFirstFeature(self)->int:
         '''Renvoie le premier index de la feature
@@ -22,45 +26,47 @@ class Extractor:
         return idx
         
         
-    def addFeature(self,idx):
-        print("ADD feature")
-        self.featuresList.append(idx)
-    
-    
-    def getVarVector(self)->np.ndarray:
         
-        newVarVec = np.zeros_like(self.varVector)
-        covMatFeatures = self.covMatFeatures()
-        invCovMatF = np.linalg.inv(covMatFeatures)
-        for idx in range(self.N):
-        
-            covVec = self.covVecFeatures(idx)
-            newVarVec[idx] = self.varVector[idx] - (covVec.T).dot(invCovMatF).dot(covVec)
-            print(idx,"/",self.N)
 
-        return newVarVec
+    def addFeature(self,idx):
+        '''Add a feature and update psi matrix'''
+        
+        print("Ajout de Feature :")
+        print("liste : ",self.featuresList)
+        
+        ##Si il n'y a pas encore de features
+        if (self.featuresList == []):
+            #On ajoute la première
+            self.featuresList.append(idx)
+            #On fait la mise a jour
+            covXsiX = self.kernel.covWithX(idx)
+            self.psi = np.reshape(covXsiX,(-1,1))
+        else : 
+            self.featuresList.append(idx)
+            covXsiX = self.kernel.covWithX(idx)
+            covXsiX = covXsiX.reshape(-1,1)
+            self.psi = np.append(self.psi,covXsiX,axis = 1)
+
+
+    def getVarVector(self)->np.ndarray:
+        print("Utilisation de Var Vect2")
+        xsiList = np.array(self.featuresList)
+        l = np.size(xsiList)
+        xsiCov = np.zeros_like(xsiList)
+        for idx in range(l):
+            x = xsiList[idx]
+            xsiCov[idx] = self.kernel.cov(x,x,Usetreshold=False)
+        
+        invXsiCov = 1/xsiCov
+        
+        invXsiCovDiag = np.diag(invXsiCov)
+        
+        A = self.varVector - (self.psi).dot(invXsiCovDiag).dot(self.psi.T)
+        
+
+        return np.diag(A)
+        
     
-    def covMatFeatures(self):
-        '''Retourne la matrice de covariance des features'''
-        m = len(self.featuresList)
-        mat = np.zeros((m,m))
-        for i in range(m):
-            for j in range(m):
-                idxX = self.featuresList[i]
-                idxY = self.featuresList[j]
-                mat[i,j] = self.kernel.cov(idxX,idxY)
-        return mat
-        
-        
-    def covVecFeatures(self,x):
-        '''Retourne le vecteur de covariance entre x et les features '''
-        m = len(self.featuresList)
-        vec = np.zeros(m)
-        for idx in range(m):
-            y = self.featuresList[idx]
-            vec[idx] = self.kernel.cov(x,y)
-        
-        return vec
     
     def getFeature(self,nbFeatures:int)->list:
         '''renvoie la liste des nb features de l'image'''
