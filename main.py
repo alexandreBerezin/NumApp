@@ -7,7 +7,7 @@ import numpy as np
 from FeaturesExtractor import Kernel as k
 from FeaturesExtractor import Features as f
 from ImageProcessing import processing as pr
-from misc import *
+from FeaturesExtractor.misc import *
 
 import matplotlib.pyplot as plt
 
@@ -15,12 +15,13 @@ import matplotlib.pyplot as plt
 contours = pr.preprocess("data/imageBase.png",10,3)
 shape = np.shape(contours)
 
+
 Xvec = XVecFromArray(contours)
 
 weightVec = contours.ravel()
 
 #Creation Ker
-ker = k.Kernel(weightVec,Xvec,3)
+ker = k.Kernel(weightVec,Xvec,3,10)
 
 varVect = ker.getVarVector()
 
@@ -28,7 +29,7 @@ varVect = ker.getVarVector()
 ##Creation ext
 ext = f.Extractor(varVect,ker)
 
-featureList = ext.getFeature(2)
+featureList = ext.getFeature(1)
 
 print(featureList)
 

@@ -1,18 +1,18 @@
 import numpy as np
 from FeaturesExtractor import Kernel
-
-from misc import *
+from FeaturesExtractor.misc import *
     
-
     
 class Extractor:
-    def __init__(self,varVector:np.ndarray,kernel:Kernel) -> None:
+    '''
+    Class qui 
+    '''
+    def __init__(self,varVector:np.ndarray,kernel:Kernel):
         self.featuresList = []
         self.varVector = varVector
         self.N, = np.shape(varVector)
         self.kernel = kernel
         self.psi = np.array([])
-        
         
     def getIndexFirstFeature(self)->int:
         '''Renvoie le premier index de la feature
@@ -24,10 +24,8 @@ class Extractor:
         '''Renvoie l'index de la prochaine feature'''
         idx = np.argmax(varVect)
         return idx
-        
-        
-        
-
+          
+          
     def addFeature(self,idx):
         '''Add a feature and update psi matrix'''
         
