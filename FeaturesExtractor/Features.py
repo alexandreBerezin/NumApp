@@ -30,7 +30,6 @@ class Extractor:
         '''Add a feature and update psi matrix'''
         
         print("Ajout de Feature :")
-        print("liste : ",self.featuresList)
         
         ##Si il n'y a pas encore de features
         if (self.featuresList == []):

@@ -31,9 +31,12 @@ class Kernel:
     
     def covWithX(self,xsi):
         '''Retourne un vecteur de cavariance entre tous les xi et xsi'''
+        print("fonction covWithXsi")
         cov = np.zeros(self.N)
         for idx in range(self.N):
             cov[idx] = self.cov(idx,xsi)
+            if(idx%100 == 0):
+                print(idx,"/",self.N)
         return cov
 
     
