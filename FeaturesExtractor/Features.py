@@ -1,85 +1,59 @@
 import numpy as np
-from FeaturesExtractor import Kernel
-from FeaturesExtractor.misc import *
-    
-    
+from scipy import sparse as s
+import os
+
+
+
+
+
 class Extractor:
     '''
-    Class qui 
+    Class qui est utilisée pour récupérer les points d'interêts 
     '''
-    def __init__(self,varVector:np.ndarray,kernel:Kernel):
+    def __init__(self,Kw:np.ndarray):
         self.featuresList = []
-        self.varVector = varVector
-        self.N, = np.shape(varVector)
-        self.kernel = kernel
-        self.psi = np.array([])
+        self.KwBase = Kw
+        self.varVectBase = Kw.diagonal()
+        self.varVect = self.varVectBase
+        self.psi = []
         
-    def getIndexFirstFeature(self)->int:
-        '''Renvoie le premier index de la feature
-        '''
-        idx = np.argmax(self.varVector)
-        return idx #car 1D Array
-    
-    def getIndexNextFeature(self,varVect:np.ndarray)->int:
-        '''Renvoie l'index de la prochaine feature'''
-        idx = np.argmax(varVect)
+    def getIndexFirstFeature(self):
+        idx = np.argmax(self.varVectBase)
         return idx
-          
-          
-    def addFeature(self,idx):
-        '''Add a feature and update psi matrix'''
+    
+    def getIndexNextFeature(self)->int:
+        '''Renvoie l'index de la prochaine feature'''
+        idx = np.argmax(self.varVect)
+        return idx
+    
+    def addFeature(self,idx:int)->None:
+        '''On ajoute la feature et on fait la mise à jour de psi '''
         
-        print("Ajout de Feature :")
+        self.featuresList.append(idx)
+        ## Si aucune feature on ajoute la nouvelle
+        if self.psi == []:
+            self.psi = self.KwBase[:,idx]
+        else:
+            self.psi = s.hstack([self.psi,self.KwBase[:,idx]])
         
-        ##Si il n'y a pas encore de features
-        if (self.featuresList == []):
-            #On ajoute la première
-            self.featuresList.append(idx)
-            #On fait la mise a jour
-            covXsiX = self.kernel.covWithX(idx)
-            self.psi = np.reshape(covXsiX,(-1,1))
-        else : 
-            self.featuresList.append(idx)
-            covXsiX = self.kernel.covWithX(idx)
-            covXsiX = covXsiX.reshape(-1,1)
-            self.psi = np.append(self.psi,covXsiX,axis = 1)
+        
+    
+    def updateVarVect(self):
+        '''Add a feature and update varVect'''
+        
+        #Calcul de 
+        varXsi = self.varVectBase[self.featuresList]
 
-
-    def getVarVector(self)->np.ndarray:
-        print("Utilisation de Var Vect2")
-        xsiList = np.array(self.featuresList)
-        l = np.size(xsiList)
-        xsiCov = np.zeros_like(xsiList)
-        for idx in range(l):
-            x = xsiList[idx]
-            xsiCov[idx] = self.kernel.cov(x,x,Usetreshold=False)
         
-        invXsiCov = 1/xsiCov
+        invVarXsi = 1/varXsi
+        invVarXsiDiag = s.diags(invVarXsi)
+                
         
-        invXsiCovDiag = np.diag(invXsiCov)
+        self.varVect = s.csc_matrix(self.varVectBase) - (self.psi.dot(invVarXsiDiag).dot(self.psi.transpose())).diagonal()
         
-        A = self.varVector - (self.psi).dot(invXsiCovDiag).dot(self.psi.T)
         
-
-        return np.diag(A)
+    def getVarVect(self):
+        return self.varVect
+        
         
     
-    
-    def getFeature(self,nbFeatures:int)->list:
-        '''renvoie la liste des nb features de l'image'''
-        
-        FF = self.getIndexFirstFeature()
-        if nbFeatures ==1 :
-            return FF
-        self.addFeature(FF)
-        
-        for i in range(1,nbFeatures):
-            newVarVec = self.getVarVector()
-            newFeature = self.getIndexNextFeature(newVarVec)
-            self.addFeature(newFeature)
-            
-        return self.featuresList
-            
-    
-    
-        

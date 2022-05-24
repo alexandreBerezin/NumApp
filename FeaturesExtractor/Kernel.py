@@ -1,82 +1,108 @@
 import numpy as np
+from scipy import sparse as s
+import os
+
+from FeaturesExtractor.misc import getCoordFromVect,getIdxFromArray
 
 
-class Kernel:
-    '''classe representant la fonction de covariance'''
+def getVoisins(idx:int,nbSide:int,d:int):
+    '''
+    renvoie la liste des indices voisins de idx
+    ----------------------
+    idx: index du pixel dans un vecteur 1D
+    nbSide: nombre de pixel de coté 
+    d : distance du plus grand voisins '''
     
-    def __init__(self,weights:np.ndarray,Xvalues:np.ndarray,l:float,treshold=None)->None:
-        '''Constructeur du Kernel
-        weights     : Vecteur 1D
-        Xvalues     : Vecteur avec les valeurs des coordonnées [[xA,yA], [xB,yB], ...]
-        l           : longeur caractéristique du RBF
-        '''
-        self.Xvalues = Xvalues
-        self.weights = weights
-        self.l = l
-        self.N, = np.shape(weights)
-        self.treshold = treshold
-    
-    def __repr__(self):
-        return "Objet Kernel : l = " + str(self.l) + ", N = " + str(self.N) 
-    
-    
-    def getVarVector(self)->np.ndarray:
-        '''Renvoie un vecteur 1D : variance pondéré de chaque pixel '''
-        klZero = np.square(self.Xvalues)
-        #somme de x^2 et y^2 
-        klZero = np.sum(klZero,axis=1)
-        klZero = np.exp(-klZero/(2*(self.l)**2))
-        
-        return np.convolve(klZero,self.weights)[:self.N]
-    
-    def covWithX(self,xsi):
-        '''Retourne un vecteur de cavariance entre tous les xi et xsi'''
-        print("fonction covWithXsi")
-        cov = np.zeros(self.N)
-        for idx in range(self.N):
-            cov[idx] = self.cov(idx,xsi)
-            if(idx%100 == 0):
-                print(idx,"/",self.N)
-        return cov
+    #Coordonnées du centre
+    Cx,Cy = getCoordFromVect(idx,nbSide)
+    #Coordonnées de l'origine
+    Ox = Cx-d
+    Oy = Cy-d
+    voisins = []
+    for x in range(Ox,Ox+2*d+1):
+        for y in range(Oy,Oy+2*d+1):
 
+            # Valeurs dans la grille ? 
+            if ((x>=0 and x<nbSide) and (y>=0 and y <nbSide)):
+                voisins.append([x,y])
+                
     
+    ## Tranformation en idices 1D
+    nb = len(voisins)
+    idxVoisins = np.zeros(nb)
+    for coord in range(nb):
+        i,j = voisins[coord]
+        idxVoisins[coord] = getIdxFromArray(i,j,nbSide)
     
-    def cov(self,idxX:np.ndarray,idxY:np.ndarray,Usetreshold = True)->float:
-        '''Renvoie la covariance pondérée entre x et y'''
-        
-        sum = 0
-        x = self.Xvalues[idxX]
-        y = self.Xvalues[idxY]
-        
-        if (Usetreshold):
+    return idxVoisins
 
 
-            xA,yA = x
-            xB,yB = y
-            d2 = (xB-xA)**2 + (yB-yA)**2
-            
-            if(d2<self.treshold**2):
-                for idx in range(self.N):
-                    z = self.Xvalues[idx]
-                    sum = sum + self.RBF(x,z,self.l/2)*self.weights[idx]*self.RBF(z,y,self.l/2)
-                return sum
-            #Si la distance est trop grande on retourne 0 pour l'optimisation
-            return 0
-        else : 
-            for idx in range(self.N):
-                    z = self.Xvalues[idx]
-                    sum = sum + self.RBF(x,z,self.l/2)*self.weights[idx]*self.RBF(z,y,self.l/2)
-            return sum
 
+
+def RBF(a:np.ndarray,b:np.ndarray,l:float):
+    xa,ya = a
+    xb,yb = b
+    d2 = (xa-xb)**2 + (ya-yb)**2
+    return np.exp(-d2/(2*l**2))
+
+
+
+
+def computeK(nbSide:int,l:float)-> s.lil.lil_matrix:
+    '''
+    Calcule et renvoie la matrice K approchée RBF
+    avec un cube de longeur 6l pour chaque 
+    ------------------------------
+    nbSide: nombre de pixel de coté 
+    l: longeur caractéristique du RBF
+    '''
+    d = int(np.floor(3*l))
+    N = nbSide*nbSide
+    M = s.lil_matrix((N,N))
     
-    def RBF(self,A:np.ndarray,B:np.ndarray,l:float)->float:
-        '''Renvoie la covariance par le kernel RBF entre A = [xA,yA] et B=[xB,yB]'''
-        xA,yA = A
-        xB,yB = B
-        d2 = (xB-xA)**2 + (yB-yA)**2
-        return np.exp(-d2/(2*l**2))
-        
-        
-        
-        
-        
+
+    for i in range(N):
+        voisins = getVoisins(i,nbSide,d)
+        x = getCoordFromVect(i,nbSide)
+        for j in voisins:
+            y = getCoordFromVect(j,nbSide)
+            M[i,j] = RBF(x,y,l)
+
+    return s.csc_matrix(M)
+
+
+
+
+def getK(nbSide:int,l:float)-> s.lil.lil_matrix:
+    '''
+    Renvoie la matrice approchée de K : 
+    vérifie dans le dossier et sinon la calcule 
+    et l'enregistre voir computeK 
+    '''
+    ## Chercher si il existe une valeur déja calculé de K 
+    basepath = 'Kdata/'
+
+    for entry in os.listdir(basepath):
+        if os.path.isfile(os.path.join(basepath, entry)):
+            if("%f"%l in entry):
+                print("K : occurence trouvée dans la base de donnée")
+                path = basepath + entry
+                return s.load_npz(path)
+    
+    print("Calcul de K")
+    K = computeK(nbSide,l)
+    print("sauvegarde de K")
+    s.save_npz(basepath + '/L_%f'%l, K)
+    return K
+
+
+
+def getKw(weightVec:np.ndarray,nbSide:int,l:float):
+    '''
+    Renvoie la matrice de covariance approchée pondéré par
+    les poids du vecteur
+    '''
+    K = getK(nbSide,l/2)
+    W = s.diags(weightVec)
+    
+    return K.transpose().dot(W).dot(K)
