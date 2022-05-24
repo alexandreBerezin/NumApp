@@ -60,6 +60,10 @@ def getContour(img:np.ndarray)->np.ndarray:
     #Laplace
     Laplace = cv2.Laplacian(cl1,cv2.CV_64F)
     contours = cv2.convertScaleAbs(Laplace)
+
+    #Normalisation
+    norm = np.linalg.norm(contours)
+    contours = contours/norm
     
     return contours
 

@@ -2,6 +2,9 @@ import numpy as np
 from scipy import sparse as s
 import os
 
+from FeaturesExtractor.misc import getCoordFromVect,getIdxFromArray,getCoordFromVectList
+
+
 
 
 
@@ -37,23 +40,38 @@ class Extractor:
             self.psi = s.hstack([self.psi,self.KwBase[:,idx]])
         
         
-    
     def updateVarVect(self):
         '''Add a feature and update varVect'''
         
         #Calcul de 
         varXsi = self.varVectBase[self.featuresList]
 
-        
         invVarXsi = 1/varXsi
         invVarXsiDiag = s.diags(invVarXsi)
-                
-        
+                        
         self.varVect = s.csc_matrix(self.varVectBase) - (self.psi.dot(invVarXsiDiag).dot(self.psi.transpose())).diagonal()
         
         
     def getVarVect(self):
         return self.varVect
+
+
+    def getNFeatures(self,nbFeatures:int)-> list:
+        ### Add first feature
+        idx = self.getIndexFirstFeature()
+        self.addFeature(idx)
+        self.updateVarVect()
+
+        for i in range(1,nbFeatures):
+            idx = self.getIndexNextFeature()
+            self.addFeature(idx)
+            self.updateVarVect()
+
+        return self.featuresList
         
         
     
+    def getCoordNFeatures(self,nbFeatures:int,nbSide:int)->np.ndarray:
+        liste = self.getNFeatures(nbFeatures)
+        return getCoordFromVectList(liste,nbSide)
+        

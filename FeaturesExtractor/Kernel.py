@@ -2,7 +2,7 @@ import numpy as np
 from scipy import sparse as s
 import os
 
-from FeaturesExtractor.misc import getCoordFromVect,getIdxFromArray
+from FeaturesExtractor.misc import getCoordFromVect,getIdxFromArray,getCoordFromVectList
 
 
 def getVoisins(idx:int,nbSide:int,d:int):

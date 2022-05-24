@@ -23,3 +23,12 @@ def getIdxFromArray(i:int,j:int,nbSide:int)->int:
     nbSide : nombre de pixel sur le coté de l image carrée
     '''
     return i*nbSide+ j 
+
+
+def getCoordFromVectList(liste :list,nbSide:int)->np.ndarray:
+    out = []
+    for idx in liste:
+        x,y = getCoordFromVect(idx,nbSide)
+        out.append([x,y])
+    
+    return np.array(out)
