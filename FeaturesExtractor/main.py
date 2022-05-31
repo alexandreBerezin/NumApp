@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import sparse as s
 import cv2
-from sympy import comp
 
 import ImageProcessing.processing as pr
 import FeaturesExtractor.Kernel as k
@@ -15,7 +14,7 @@ import FeaturesExtractor.Features as f
 
 
 
-def computeFeatures(param:dict)->list:
+def computeFeatures(param:dict,path:str)->list:
     '''
     return [img,coordPI]
     --------------------
@@ -23,12 +22,12 @@ def computeFeatures(param:dict)->list:
     de points d'interêts
     '''
 
-    imgPath = param["chemin"]
+    
     l = param["longeur caractéristique du RBF"]
     nbFeatures = param["nombre de points d'interêts"]
 
     #Utilisation de ImageProcessing
-    img =pr.cropToCoin(imgPath)
+    img =pr.cropToCoin(path)
     contours = pr.getContour(img)
 
     shape = np.shape(contours)
@@ -56,7 +55,7 @@ def computeFeatures(param:dict)->list:
     return [img,coordPI]
 
 
-def getFeatures(param:dict)->list:
+def getFeatures(param:dict,path:str)->list:
     '''
     return [img,coordPI]
     --------------------
@@ -66,7 +65,7 @@ def getFeatures(param:dict)->list:
     '''
 
     
-    imgPath = param["chemin"]
+    imgPath = path
     l = param["longeur caractéristique du RBF"]
     nbFeatures = param["nombre de points d'interêts"]
     
@@ -85,7 +84,7 @@ def getFeatures(param:dict)->list:
                 return [img,features]
     
 
-    [img,features] = computeFeatures(param)
+    [img,features] = computeFeatures(param,path)
     np.save(basepath + name, features)
     
     return [img,features]

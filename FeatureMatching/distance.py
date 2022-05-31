@@ -41,26 +41,21 @@ def getFilteredMatch(img1,features1,img2,features2):
     src_pts = np.float32([ keyPoint1[m.queryIdx].pt for m in matches ]).reshape(-1,1,2)
     dst_pts = np.float32([ keyPoint2[m.trainIdx].pt for m in matches ]).reshape(-1,1,2)
     
-    M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+    M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5)
 
     MatchesF = np.extract(mask.ravel(),matches)
     
     return [keyPoint1,keyPoint2,MatchesF]
 
-def getDistance(keyPoint1,keyPoint2,match):
+def getNbAndP(keyPoint1,keyPoint2,match):
     src_pts = np.float32([ keyPoint1[m.queryIdx].pt for m in match ]).reshape(-1,2)
     dst_pts = np.float32([ keyPoint2[m.trainIdx].pt for m in match ]).reshape(-1,2)
     
-    a,b,m=procrustes(src_pts,dst_pts)
+    a,b,p=procrustes(src_pts,dst_pts)
     
-    n = np.shape(match)[0]
+    nb = np.shape(match)[0]
     
-    if n>= 10 : 
-        bias = 10
-    else:
-        bias = 0
     
-    return 100.0/n + np.log(m) 
-    
+    return [nb,p]
     
     
