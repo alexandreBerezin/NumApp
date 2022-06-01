@@ -46,11 +46,11 @@ def cropToCoin(imgPath:str)-> np.ndarray:
     return img[pixG:pixD,pixH:pixB]
     
     
-def getContour(img:np.ndarray)->np.ndarray:
+def getContour(img:np.ndarray,denoiseTVWeight:float)->np.ndarray:
     #transformation en nuances de gris 
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     # Total variation regularization
-    denoisedImg = denoise_tv_chambolle(gray,weight=0.07)
+    denoisedImg = denoise_tv_chambolle(gray,weight=denoiseTVWeight)
 
     #CLAHE (Contrast Limited Adaptive Histogram Equalization)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))

@@ -10,7 +10,7 @@ import numpy as np
 
 from scipy.spatial import procrustes
 
-def getFilteredMatch(img1,features1,img2,features2):
+def getFilteredMatch(img1,features1,img2,features2,reprojThreshold):
     '''
     renvoie une liste de match Par Brute Force
     et descripteur BRIEF    
@@ -41,7 +41,7 @@ def getFilteredMatch(img1,features1,img2,features2):
     src_pts = np.float32([ keyPoint1[m.queryIdx].pt for m in matches ]).reshape(-1,1,2)
     dst_pts = np.float32([ keyPoint2[m.trainIdx].pt for m in matches ]).reshape(-1,1,2)
     
-    M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5)
+    M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,reprojThreshold)
 
     MatchesF = np.extract(mask.ravel(),matches)
     

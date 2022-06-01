@@ -23,12 +23,13 @@ def computeFeatures(param:dict,path:str)->list:
     '''
 
     
-    l = param["longeur caractéristique du RBF"]
-    nbFeatures = param["nombre de points d'interêts"]
+    l = param["longeur RBF"]
+    nbFeatures = param["nombre features"]
+    denoiseTVWeight = param["denoiseTV weight"]
 
     #Utilisation de ImageProcessing
     img =pr.cropToCoin(path)
-    contours = pr.getContour(img)
+    contours = pr.getContour(img,denoiseTVWeight)
 
     shape = np.shape(contours)
     nbSide,b = shape
@@ -66,10 +67,11 @@ def getFeatures(param:dict,path:str)->list:
 
     
     imgPath = path
-    l = param["longeur caractéristique du RBF"]
-    nbFeatures = param["nombre de points d'interêts"]
+    l = param["longeur RBF"]
+    nbFeatures = param["nombre features"]
+    denoiseTVWeight = param["denoiseTV weight"]
     
-    name = "F_(" + imgPath[6:-4] + ")_l_%f_nb_%d"%(l,nbFeatures)
+    name = "F_(" + imgPath[6:-4] + ")_l_%f_nb_%d_w_%f"%(l,nbFeatures,denoiseTVWeight)
     
     img =pr.cropToCoin(imgPath)
 

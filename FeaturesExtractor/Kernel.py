@@ -85,7 +85,7 @@ def getK(nbSide:int,l:float)-> s.lil.lil_matrix:
     for entry in os.listdir(basepath):
         if os.path.isfile(os.path.join(basepath, entry)):
             if("%f"%l in entry):
-                print("K : occurence trouvée dans la base de donnée")
+                #print("K : occurence trouvée dans la base de donnée")
                 path = basepath + entry
                 return s.load_npz(path)
     
