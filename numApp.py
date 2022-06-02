@@ -26,11 +26,19 @@ def getDistanceMatrix(param:dict,pathList:list)->np.ndarray:
     D = np.empty((n,n))
     D.fill(np.nan)
 
+
+    count = 1
+
     for i in range(n):
         for j in range(i):
+            print(count,"/",(n-1)*n/2)
             path1 = pathList[i]
             path2 = pathList[j]
             D[i,j]=getDistance(param,path1,path2)
+
+            count = count+1
+
+        
 
     
     return D
@@ -51,4 +59,6 @@ def getContraste(D:np.ndarray,sameCoin:np.ndarray)->float:
     moyenneDistCoin = sumDistCoin/nbCoin
     moyenneDistAutre = (sumTot-sumDistCoin)/(nbTot-nbCoin)
 
-    return moyenneDistCoin/moyenneDistAutre
+    moyenneTot = sumTot/nbTot
+
+    return (moyenneDistCoin - moyenneDistAutre)/moyenneTot
