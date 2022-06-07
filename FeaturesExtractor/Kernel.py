@@ -43,7 +43,7 @@ def RBF(a:np.ndarray,b:np.ndarray,l:float):
     xa,ya = a
     xb,yb = b
     d2 = (xa-xb)**2 + (ya-yb)**2
-    return np.exp(-d2/(2*l**2))
+    return np.exp(-d2/(2*l**2),dtype=np.float32)
 
 
 
@@ -58,7 +58,7 @@ def computeK(nbSide:int,l:float)-> s.lil.lil_matrix:
     '''
     d = int(np.floor(3*l))
     N = nbSide*nbSide
-    M = s.lil_matrix((N,N))
+    M = s.lil_matrix((N,N),dtype=np.float32)
     
 
     for i in range(N):
@@ -67,8 +67,8 @@ def computeK(nbSide:int,l:float)-> s.lil.lil_matrix:
         for j in voisins:
             y = getCoordFromVect(j,nbSide)
             M[i,j] = RBF(x,y,l)
-
-    return s.csc_matrix(M)
+            
+    return s.csc_matrix(M).astype(np.float32,copy=False)
 
 
 
@@ -87,7 +87,7 @@ def getK(nbSide:int,l:float)-> s.lil.lil_matrix:
             if("%f"%l in entry):
                 #print("K : occurence trouvée dans la base de donnée")
                 path = basepath + entry
-                return s.load_npz(path)
+                return s.load_npz(path).astype(np.float32)
     
     print("Calcul de K")
     K = computeK(nbSide,l)
@@ -102,7 +102,9 @@ def getKw(weightVec:np.ndarray,nbSide:int,l:float):
     Renvoie la matrice de covariance approchée pondéré par
     les poids du vecteur
     '''
+    
     K = getK(nbSide,l/2)
-    W = s.diags(weightVec)
+    W = s.diags(weightVec,dtype =np.float32)
+ 
     
     return K.transpose().dot(W).dot(K)

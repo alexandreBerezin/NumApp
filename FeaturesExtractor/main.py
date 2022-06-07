@@ -8,15 +8,14 @@ import numpy as np
 from scipy import sparse as s
 import cv2
 
-import ImageProcessing.processing as pr
 import FeaturesExtractor.Kernel as k
 import FeaturesExtractor.Features as f
 
 
 
-def computeFeatures(param:dict,path:str)->list:
+def computeFeatures(param:dict,contours:np.ndarray)->list:
     '''
-    return [img,coordPI]
+    return coordPI
     --------------------
     fonction qui va encapsuler la recherche 
     de points d'interêts
@@ -25,55 +24,60 @@ def computeFeatures(param:dict,path:str)->list:
     
     l = param["longeur RBF"]
     nbFeatures = param["nombre features"]
-    denoiseTVWeight = param["denoiseTV weight"]
-
-    #Utilisation de ImageProcessing
-    img =pr.cropToCoin(path)
-    contours = pr.getContour(img,denoiseTVWeight)
 
     shape = np.shape(contours)
     nbSide,b = shape
 
     #Transformation en vecteur 1D
     weightVec = np.ravel(contours)
+    
+    id =np.random.randint(0,100)
 
+    print("calcul Kw",id)
     #Calcul de K
     Kw = k.getKw(weightVec,nbSide,l)
+    print("Ok Kw pour",id)
     ## Extracteur
+    
+    
     ext = f.Extractor(Kw)
-    #
+    
+    print("calcul features",id)
     coordPI= ext.getCoordNFeatures(nbFeatures,nbSide)
     nb,b = np.shape(coordPI) 
-
+    print("Fin de calcul features ",id)
 
     ## Conversion en X Y 
     for i in range(nb):
         y,x = coordPI[i]
         coordPI[i] = np.array([x,y])
 
+    return coordPI
 
 
-    return [img,coordPI]
 
 
-def getFeatures(param:dict,path:str)->list:
+
+def getFeatures(param:dict,nameCoin:str,contours:np.ndarray,debug=True)->list:
     '''
-    return [img,coordPI]
+    return [img,features]
     --------------------
     fonction qui va renvoyer les points
     d'interêts et les enregistrer dans
     un fichier 
     '''
 
-    
-    imgPath = path
+
     l = param["longeur RBF"]
     nbFeatures = param["nombre features"]
     denoiseTVWeight = param["denoiseTV weight"]
     
-    name = "F_(" + imgPath[6:-4] + ")_l_%f_nb_%d_w_%f"%(l,nbFeatures,denoiseTVWeight)
+    name = "F_(" + nameCoin + ")_l_%f_nb_%d_w_%f"%(l,nbFeatures,denoiseTVWeight)
     
-    img =pr.cropToCoin(imgPath)
+    if debug : print("getFeature pour ",nameCoin)
+    
+    
+    #img =pr.cropToCoin(imgPath)
 
     ## Chercher si il existe une valeur déja calculé de K 
     basepath = 'Features/'
@@ -83,12 +87,12 @@ def getFeatures(param:dict,path:str)->list:
         if os.path.isfile(os.path.join(basepath, entry)):
             if(name in entry):
                 features =  np.load(basepath + entry)
-                return [img,features]
+                return features
     
 
-    [img,features] = computeFeatures(param,path)
+    features= computeFeatures(param,contours)
     np.save(basepath + name, features)
     
-    return [img,features]
+    return features
 
 
