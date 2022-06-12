@@ -1,17 +1,19 @@
 # NumApp
 
-Application qui permet de classer des images de pièces en fonctions du coin avec lequel elles ont été frappées 
+Application qui permet à partir d'images de monnaies de déterminer des groupes parmis lesquels les monaies on été frappées par le même coin
 
 ## Contenu 
-Trois module basées sur l'article "Unsupervised Statistical Learning for Die Analysis in Ancient Numismatics"
+Des modules basées en partie sur l'article "Unsupervised Statistical Learning for Die Analysis in Ancient Numismatics"
 
 ### Module Image Processing 
 
-- A FAIRE
+Le module image processing permet la mise en forme automatique des images et de detecter les contours 
 
 ### Module FeaturesExtractor
+Extrait des points d'interêts a partir de pprocessus gaussiens
+
+### Module FeatureMatching
+permêt de calculer une distance 
 
 
-### Module Classification
-
-- A Faire
+# To Do :
