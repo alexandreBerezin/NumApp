@@ -63,7 +63,6 @@ class Extractor:
         self.updateVarVect()
 
         for i in range(1,nbFeatures):
-            print("features: ",i,'/',nbFeatures)
             idx = self.getIndexNextFeature()
             self.addFeature(idx)
             self.updateVarVect()

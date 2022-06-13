@@ -11,7 +11,7 @@ import multiprocessing as mp
 
 
 import numpy as np
-
+import os
 
 def getDistance(param:dict,path1:str,path2:str,debug=False)->float:
 
@@ -20,8 +20,8 @@ def getDistance(param:dict,path1:str,path2:str,debug=False)->float:
     denoiseTVWeight = param["denoiseTV weight"]
     
     #On récupère le nom
-    name1 = (path1.split("/")[1])[:-4]
-    name2 = (path2.split("/")[1])[:-4]
+    name1 = (path1.split("/")[-1])[:-4]
+    name2 = (path2.split("/")[-1])[:-4]
     
     if debug : print("Image processing")
     #image processing
@@ -47,56 +47,69 @@ def getDistance(param:dict,path1:str,path2:str,debug=False)->float:
 
 
 
-def getFeaturesList(param,pathList):
+def getFeaturesList(param,pathDataList):
 
     denoiseTVWeight = param["denoiseTV weight"]
-    
-    
+
+    nbPool = param["Multiprocess Pool"]
     
     paramList = []
-    for path in pathList:
-        name = (path.split("/")[1])[:-4]
+    for path in pathDataList:
+        name = (path.split("/")[-1])[:-4]
         img =pr.cropToCoin(path)
         contours = pr.getContour(img,denoiseTVWeight)
         paramList.append([param,name,contours])
         
-        
-    print("Start pool")
-    with mp.Pool(4) as pool:
+
+    print("Start pool with %d"%nbPool)
+    with mp.Pool(nbPool) as pool:
         L = pool.starmap(fe.getFeatures, paramList)
         
-    '''
-    nbChunk = 6
-    chunks = [paramList[x:x+nbChunk] for x in range(0, len(paramList), nbChunk)]
-    
-    
-    
-    for paramChunk in chunks:
-        print("Start pool")
-        with mp.Pool() as pool:
-            L = pool.starmap_async(fe.getFeatures, paramChunk)
-    ''' 
-
 
 
     
 
-def getDistanceMatrix(param:dict,pathList:list)->np.ndarray:
-    n = len(pathList)
+def getDistanceMatrix(param:dict)->np.ndarray:
+
+
+
+    param["absPath"]=os.path.dirname(os.path.abspath(__file__))
+    absPath = param["absPath"]
+    dataPath = param["Data Folder"]
+    absDataPath = os.path.join(absPath,dataPath)
+
+
+    #Liste de data
+    dataList = sorted(os.listdir(absDataPath))
+
+    #liste path data
+    pathDataList = []
+    for coin in dataList:
+        pathDataList.append(os.path.join(absDataPath,coin))
+
+    print(pathDataList[1])
+
+
+
+    n = len(pathDataList)
     D = np.empty((n,n))
     D.fill(np.nan)
     
     
-    featureList = getFeaturesList(param,pathList)
+    featureList = getFeaturesList(param,pathDataList)
 
 
-    print("Calcul de distance")
+
+
+
+
+    print("Calcul de la matrice de distance ligne par ligne")
     count = 1
     for i in range(n):
         print(i,"/",n)
         for j in range(i):
-            path1 = pathList[i]
-            path2 = pathList[j]
+            path1 = pathDataList[i]
+            path2 = pathDataList[j]
             D[i,j]=getDistance(param,path1,path2,debug=False)
     
     return D

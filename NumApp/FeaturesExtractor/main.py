@@ -25,27 +25,27 @@ def computeFeatures(param:dict,contours:np.ndarray)->list:
     l = param["longeur RBF"]
     nbFeatures = param["nombre features"]
 
+    absPath = param["absPath"]
+
     shape = np.shape(contours)
     nbSide,b = shape
 
     #Transformation en vecteur 1D
     weightVec = np.ravel(contours)
     
-    id =np.random.randint(0,100)
 
-    print("calcul Kw",id)
     #Calcul de K
-    Kw = k.getKw(weightVec,nbSide,l)
-    print("Ok Kw pour",id)
+    Kw = k.getKw(weightVec,nbSide,l,absPath)
+
     ## Extracteur
     
     
     ext = f.Extractor(Kw)
     
-    print("calcul features",id)
+
     coordPI= ext.getCoordNFeatures(nbFeatures,nbSide)
     nb,b = np.shape(coordPI) 
-    print("Fin de calcul features ",id)
+
 
     ## Conversion en X Y 
     for i in range(nb):
@@ -73,15 +73,17 @@ def getFeatures(param:dict,nameCoin:str,contours:np.ndarray,debug=True)->list:
     denoiseTVWeight = param["denoiseTV weight"]
     
     name = "F_(" + nameCoin + ")_l_%f_nb_%d_w_%f"%(l,nbFeatures,denoiseTVWeight)
-    
-    if debug : print("getFeature pour ",nameCoin)
-    
-    
-    #img =pr.cropToCoin(imgPath)
+
+
 
     ## Chercher si il existe une valeur déja calculé de K 
-    basepath = 'Features/'
-    
+    FeaturePathLocal = param["Features Folder"]
+    absPath = param["absPath"]
+
+
+    basepath = os.path.join(absPath,FeaturePathLocal)
+
+
 
     for entry in os.listdir(basepath):
         if os.path.isfile(os.path.join(basepath, entry)):
@@ -89,7 +91,7 @@ def getFeatures(param:dict,nameCoin:str,contours:np.ndarray,debug=True)->list:
                 features =  np.load(basepath + entry)
                 return features
     
-
+    print("Calcul feature for " + nameCoin)
     features= computeFeatures(param,contours)
     np.save(basepath + name, features)
     

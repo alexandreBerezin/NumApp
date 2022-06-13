@@ -73,37 +73,39 @@ def computeK(nbSide:int,l:float)-> s.lil.lil_matrix:
 
 
 
-def getK(nbSide:int,l:float)-> s.lil.lil_matrix:
+def getK(nbSide:int,l:float,absPath:str)-> s.lil.lil_matrix:
     '''
     Renvoie la matrice approchée de K : 
     vérifie dans le dossier et sinon la calcule 
     et l'enregistre voir computeK 
     '''
     ## Chercher si il existe une valeur déja calculé de K 
-    basepath = 'Kdata/'
+    
+    absKFolderPath = os.path.join(absPath,"Kdata/")
 
-    for entry in os.listdir(basepath):
-        if os.path.isfile(os.path.join(basepath, entry)):
+    for entry in os.listdir(absKFolderPath):
+        if os.path.isfile(os.path.join(absKFolderPath, entry)):
             if("%f"%l in entry):
-                #print("K : occurence trouvée dans la base de donnée")
-                path = basepath + entry
+                path = absKFolderPath + entry
                 return s.load_npz(path).astype(np.float32)
     
     print("Calcul de K")
     K = computeK(nbSide,l)
     print("sauvegarde de K")
-    s.save_npz(basepath + '/L_%f'%l, K)
+    s.save_npz(absKFolderPath + '/L_%f'%l, K)
     return K
 
 
 
-def getKw(weightVec:np.ndarray,nbSide:int,l:float):
+def getKw(weightVec:np.ndarray,nbSide:int,l:float,absPath:str):
     '''
     Renvoie la matrice de covariance approchée pondéré par
     les poids du vecteur
     '''
-    
-    K = getK(nbSide,l/2)
+
+
+
+    K = getK(nbSide,l/2,absPath)
     W = s.diags(weightVec,dtype =np.float32)
  
     
