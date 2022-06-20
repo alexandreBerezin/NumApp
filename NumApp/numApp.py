@@ -9,6 +9,8 @@ import FeatureMatching.distance as fm
 
 import multiprocessing as mp
 
+from sklearn.cluster import AgglomerativeClustering
+
 
 import numpy as np
 import os
@@ -67,11 +69,31 @@ def getFeaturesList(param,pathDataList):
         
 
 
+def transformDist(D:np.ndarray)->np.ndarray:
+    D = np.nan_to_num(D)
+    D = D + D.T
+    np.fill_diagonal(D,np.min(D))
+    D = D + np.abs(np.min(D))
+    return D
+
+
+
+def getClusterIdx(DRaw:np.ndarray,distCluster:float)->list:
     
+    
+    D = transformDist(DRaw)
+    C = AgglomerativeClustering(n_clusters=None,affinity='precomputed',linkage = "average" ,distance_threshold=distCluster).fit_predict(D)
+    
+    nbCluster = len(set(C)) - (1 if -1 in C else 0)
+    Clusters = []
+    for i in range(nbCluster):
+        Cli = np.argwhere(C==i).ravel()
+        Clusters.append(Cli)  
+    return [nbCluster,Clusters]
+
+
 
 def getDistanceMatrix(param:dict)->np.ndarray:
-
-
 
     param["absPath"]=os.path.dirname(os.path.abspath(__file__))
     absPath = param["absPath"]
